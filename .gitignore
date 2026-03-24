@@ -1,0 +1,22 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# MLflow database
+mlflow.db
+mlruns/
+
+# VS Code
+.vscode/
+
+# Model file (large file)
+*.pkl

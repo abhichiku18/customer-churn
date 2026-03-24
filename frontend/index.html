@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Churn Predictor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1a202c;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #718096;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 24px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    input, select {
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2d3748;
+      background: #f7fafc;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 28px;
+      transition: opacity 0.2s;
+    }
+
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .result {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      display: none;
+    }
+
+    .result.churn {
+      background: #fff5f5;
+      border: 2px solid #fc8181;
+    }
+
+    .result.no-churn {
+      background: #f0fff4;
+      border: 2px solid #68d391;
+    }
+
+    .result-emoji { font-size: 36px; margin-bottom: 8px; }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .result.churn .result-title { color: #c53030; }
+    .result.no-churn .result-title { color: #276749; }
+
+    .result-prob { font-size: 14px; color: #718096; }
+
+    .prob-bar-wrap {
+      background: #e2e8f0;
+      border-radius: 999px;
+      height: 8px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .prob-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    .result.churn .prob-bar { background: #fc8181; }
+    .result.no-churn .prob-bar { background: #68d391; }
+
+    .loading {
+      text-align: center;
+      color: #718096;
+      font-size: 14px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .reason-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f7fafc;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .reason-label { font-weight: 600; font-size: 13px; color: #4a5568; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔮 Churn Predictor</h1>
+    <p class="subtitle">Enter customer details to predict churn risk</p>
+
+    <!-- Basic Info -->
+    <div class="section-title">Basic Information</div>
+    <div class="grid">
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="gender">
+          <option value="0">Female</option>
+          <option value="1">Male</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Senior Citizen</label>
+        <select id="SeniorCitizen">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Partner</label>
+        <select id="Partner">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Dependents</label>
+        <select id="Dependents">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Account Info -->
+    <div class="section-title">Account Information</div>
+    <div class="grid">
+      <div class="form-group">
+        <label>Tenure (months)</label>
+        <input type="number" id="tenure" value="2" min="0" max="72"/>
+      </div>
+      <div class="form-group">
+        <label>Monthly Charges ($)</label>
+        <input type="number" id="MonthlyCharges" value="85" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Total Charges ($)</label>
+        <input type="number" id="TotalCharges" value="170" step="0.01"/>
+      </div>
+      <div class="form-group">
+        <label>Paperless Billing</label>
+        <select id="PaperlessBilling">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Services -->
+    <div class="section-title">Services</div>
+    <div class="grid">
+      <div class="form-group">
+        <label>Phone Service</label>
+        <select id="PhoneService">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Multiple Lines</label>
+        <select id="MultipleLines">
+          <option value="no_phone">No Phone Service</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Internet Service</label>
+        <select id="InternetService">
+          <option value="fiber">Fiber Optic</option>
+          <option value="dsl">DSL</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Online Security</label>
+        <select id="OnlineSecurity">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Online Backup</label>
+        <select id="OnlineBackup">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Device Protection</label>
+        <select id="DeviceProtection">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tech Support</label>
+        <select id="TechSupport">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Streaming TV</label>
+        <select id="StreamingTV">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Streaming Movies</label>
+        <select id="StreamingMovies">
+          <option value="no_internet">No Internet</option>
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Contract -->
+    <div class="section-title">Contract & Payment</div>
+    <div class="grid">
+      <div class="form-group">
+        <label>Contract Type</label>
+        <select id="Contract">
+          <option value="month">Month-to-Month</option>
+          <option value="one">One Year</option>
+          <option value="two">Two Year</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select id="PaymentMethod">
+          <option value="electronic">Electronic Check</option>
+          <option value="mailed">Mailed Check</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="credit">Credit Card</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="predict()" id="btn">🔮 Predict Churn</button>
+    <div class="loading" id="loading">Analyzing customer data...</div>
+
+    <!-- Result Section -->
+    <div class="result" id="result">
+      <div class="result-emoji" id="emoji"></div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-prob" id="result-prob"></div>
+      <div class="prob-bar-wrap">
+        <div class="prob-bar" id="prob-bar" style="width:0%"></div>
+      </div>
+
+      <!-- Churn Reasons -->
+      <div id="reasons-section" style="margin-top:20px; text-align:left;">
+        <div class="reason-label">🔴 Top Reasons For Churn</div>
+        <div id="churn-reasons"></div>
+        <div class="reason-label" style="margin-top:12px;">🟢 Top Reasons Against Churn</div>
+        <div id="safe-reasons"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function getVal(id) {
+      return document.getElementById(id).value;
+    }
+
+    function encodeMultipleLines(val) {
+      return {
+        MultipleLines_No_phone_service: val === 'no_phone' ? 1 : 0,
+        MultipleLines_Yes: val === 'yes' ? 1 : 0
+      };
+    }
+
+    function encodeInternet(val) {
+      return {
+        InternetService_Fiber_optic: val === 'fiber' ? 1 : 0,
+        InternetService_No: val === 'no' ? 1 : 0
+      };
+    }
+
+    function encodeThree(prefix, val) {
+      return {
+        [`${prefix}_No_internet_service`]: val === 'no_internet' ? 1 : 0,
+        [`${prefix}_Yes`]: val === 'yes' ? 1 : 0
+      };
+    }
+
+    function encodeContract(val) {
+      return {
+        Contract_One_year: val === 'one' ? 1 : 0,
+        Contract_Two_year: val === 'two' ? 1 : 0
+      };
+    }
+
+    function encodePayment(val) {
+      return {
+        PaymentMethod_Electronic_check: val === 'electronic' ? 1 : 0,
+        PaymentMethod_Mailed_check: val === 'mailed' ? 1 : 0,
+        PaymentMethod_Credit_card_automatic: val === 'credit' ? 1 : 0
+      };
+    }
+
+    function renderReasons(reasons, elementId) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = reasons.map(r => `
+        <div class="reason-item">
+          <span>${r.feature}</span>
+          <span style="font-weight:600;">impact: ${r.impact}</span>
+        </div>
+      `).join('');
+    }
+
+    async function predict() {
+      const btn = document.getElementById('btn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+
+      btn.disabled = true;
+      loading.style.display = 'block';
+      result.style.display = 'none';
+
+      const payload = {
+        gender: parseInt(getVal('gender')),
+        SeniorCitizen: parseInt(getVal('SeniorCitizen')),
+        Partner: parseInt(getVal('Partner')),
+        Dependents: parseInt(getVal('Dependents')),
+        tenure: parseInt(getVal('tenure')),
+        PhoneService: parseInt(getVal('PhoneService')),
+        PaperlessBilling: parseInt(getVal('PaperlessBilling')),
+        MonthlyCharges: parseFloat(getVal('MonthlyCharges')),
+        TotalCharges: parseFloat(getVal('TotalCharges')),
+        ...encodeMultipleLines(getVal('MultipleLines')),
+        ...encodeInternet(getVal('InternetService')),
+        ...encodeThree('OnlineSecurity', getVal('OnlineSecurity')),
+        ...encodeThree('OnlineBackup', getVal('OnlineBackup')),
+        ...encodeThree('DeviceProtection', getVal('DeviceProtection')),
+        ...encodeThree('TechSupport', getVal('TechSupport')),
+        ...encodeThree('StreamingTV', getVal('StreamingTV')),
+        ...encodeThree('StreamingMovies', getVal('StreamingMovies')),
+        ...encodeContract(getVal('Contract')),
+        ...encodePayment(getVal('PaymentMethod'))
+      };
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        const isChurn = data.churn_prediction === 1;
+        const prob = data.churn_probability;
+
+        document.getElementById('emoji').innerText = isChurn ? '😞' : '😊';
+        document.getElementById('result-title').innerText = data.churn_meaning;
+        document.getElementById('result-prob').innerText = `Churn Probability: ${prob}%`;
+        document.getElementById('prob-bar').style.width = `${prob}%`;
+
+        renderReasons(data.churn_reasons, 'churn-reasons');
+        renderReasons(data.safe_reasons, 'safe-reasons');
+
+        result.className = `result ${isChurn ? 'churn' : 'no-churn'}`;
+        result.style.display = 'block';
+
+      } catch (err) {
+        alert('Error connecting to API. Make sure FastAPI is running!');
+      }
+
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
