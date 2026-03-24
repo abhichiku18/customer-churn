@@ -51,9 +51,8 @@ Customer churn is one of the most critical challenges in the telecom industry. A
 | 7 | Phone service has almost no impact on churn | 🟢 Low |
 
 ---
-
 ## 🏗️ Project Architecture
-
+````
 customer-churn/
 │
 ├── churn_eda.ipynb           # Stage 1+2: EDA & Data Cleaning
@@ -62,19 +61,18 @@ customer-churn/
 ├── app/
 │   ├── main.py               # FastAPI application
 │   ├── model.pkl             # Saved XGBoost model
-│   └── requirements.txt      
+│   └── requirements.txt      # API dependencies
 │
 ├── frontend/
 │   └── index.html            # Interactive Web UI
 │
 ├── data/
-│   ├── WA_Fn-UseC_-Telco-Customer-Churn.csv
+│   ├── Telco-Customer-Churn.csv
 │   └── cleaned_churn.csv
 │
 ├── .gitignore
 └── README.md
-
----
+````
 
 ## 🛠️ Tech Stack
 
