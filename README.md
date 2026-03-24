@@ -13,10 +13,7 @@
 
 ## 🎬 Demo Video
 
-https://your-demo-video-link-here.com
-
-> Add your demo video link here — Loom, YouTube, or Google Drive
-
+[![Customer Churn Prediction Demo](https://img.shields.io/badge/▶%20Watch%20Demo-Google%20Drive-red?style=for-the-badge&logo=google-drive)](https://drive.google.com/file/d/1D8vEtF3k5XUZUHImbbczpb0sHexxjvrW/view?usp=sharing)
 ---
 
 ## 📌 Problem Statement
